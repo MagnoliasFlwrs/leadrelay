@@ -5,7 +5,7 @@ export function ArchitectureDiagram() {
     { title: 'LeadRelay API', note: 'нормализация · маршруты' },
     { title: 'PostgreSQL', note: 'лиды · кампании' },
     { title: 'Очередь', note: 'отправка · ретраи' },
-    { title: 'Telegram\nканал', note: 'Bot API' },
+    { title: 'Telegram\nгруппа', note: 'Bot API' },
   ]
 
   return (

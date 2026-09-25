@@ -16,7 +16,7 @@ export const NAV: NavItem[] = [
   { group: 'Продукт', id: 'tiktok', label: 'TikTok' },
   { group: 'Продукт', id: 'telegram', label: 'Telegram' },
   { group: 'Продукт', id: 'campaigns', label: 'Кампании и маршруты' },
-  { group: 'Интерфейс', id: 'admin', label: 'Админ-панель' },
+  { group: 'Интерфейс', id: 'admin', label: 'Роли и экраны' },
   { group: 'Интерфейс', id: 'mockups', label: 'Макеты экранов' },
   { group: 'Реализация', id: 'model', label: 'Модель данных' },
   { group: 'Реализация', id: 'api', label: 'API' },

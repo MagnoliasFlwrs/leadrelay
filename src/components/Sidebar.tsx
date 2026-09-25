@@ -30,7 +30,7 @@ export function Sidebar({
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-paper/50">
             Техническое задание
           </p>
-          <p className="mt-2 font-serif text-2xl leading-none text-paper">LeadRelay</p>
+          <p className="mt-2 font-serif text-2xl leading-none text-paper">Notify 2.0</p>
           <p className="mt-2 text-xs leading-snug text-paper/55">
             Приём лидов Instagram и TikTok и перенаправление в Telegram
           </p>

@@ -40,7 +40,7 @@ export default function App() {
         >
           Разделы
         </button>
-        <p className="font-serif text-lg text-ink">LeadRelay · ТЗ</p>
+        <p className="font-serif text-lg text-ink">Notify 2.0 · ТЗ</p>
       </header>
       <main className="md:pl-[272px]">
         <div className="mx-auto max-w-4xl px-4 py-10 md:px-10 md:py-14">

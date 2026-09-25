@@ -2,7 +2,7 @@ export function ArchitectureDiagram() {
   const boxes = [
     { title: 'Instagram\nLead Ads', note: 'webhook leadgen' },
     { title: 'TikTok\nLead Gen', note: 'webhook / sync' },
-    { title: 'LeadRelay API', note: 'нормализация · маршруты' },
+    { title: 'Notify 2.0 API', note: 'нормализация · маршруты' },
     { title: 'PostgreSQL', note: 'лиды · кампании' },
     { title: 'Очередь', note: 'отправка · ретраи' },
     { title: 'Telegram\nгруппа', note: 'Bot API' },
@@ -26,7 +26,7 @@ export function ArchitectureDiagram() {
         ))}
       </div>
       <p className="mt-4 text-xs text-ink-soft">
-        Админ-панель ходит только в LeadRelay API. Платформы рекламы и Telegram с
+        Админ-панель ходит только в Notify 2.0 API. Платформы рекламы и Telegram с
         браузером сотрудников не связаны.
       </p>
     </div>

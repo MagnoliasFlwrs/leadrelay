@@ -4,7 +4,7 @@
 | | |
 |---|---|
 | Код | ТЗ-LR-001 |
-| Версия | 1.1 |
+| Версия | 1.2 |
 | Дата | 25 сентября 2026 |
 | Статус | Черновик к согласованию |
 | Рабочее имя продукта | LeadRelay |
@@ -13,6 +13,13 @@
 Документ описывает фронтенд и бэкенд сервиса, который принимает рекламные заявки из Instagram Lead Ads и TikTok Lead Generation, кладёт их в таблицу и пересылает в выбранный Telegram-бот и Telegram-группу в зависимости от рекламной кампании.
 
 Контекст: автоцентры Dongfeng. Текущий общий список заявок (фильтры + таблица на синем фоне) требует редизайна. Дашборд — версия 2.
+
+### Что изменилось в 1.2
+
+- API опирается на существующий [Notification_APS](https://notify-api.aps.by/docs), заголовок `x-auth`. Текущие методы не ломаем.
+- Новые методы: `/bots`, `/groups`, `/campaigns` (+ preview/test), `/records/route`.
+- В `POST /records/add` поле `campaign_name`.
+- Предпросмотр сообщения в Telegram сохранён.
 
 ### Что изменилось в 1.1
 
@@ -74,7 +81,7 @@
 | Админ | Всё как у сотрудника + раздел админки Instagram/TikTok (вкладки Запросы, Telegram, Рекламные кампании), сотрудники, интеграции | + дашборд |
 | Система | Вебхуки, нормализация, очередь Telegram | то же |
 
-Вход: email и пароль, JWT. Сотрудник по прямому URL админки получает 403.
+Вход: `POST /users/login`. Дальше заголовок `x-auth`. Сотрудник по прямому URL админки получает 403.
 
 ---
 
@@ -295,25 +302,87 @@ ID: {external_lead_id}
 
 ## 13. API
 
-| Метод | Путь | Роль |
-|---|---|---|
-| GET | `/leads` | staff, admin |
-| GET | `/leads/export` | staff, admin |
-| GET | `/ads/leads` | admin |
-| POST | `/ads/leads/:id/route` | admin |
-| CRUD | `/campaigns` | admin |
-| CRUD | `/telegram-bots` | admin |
-| CRUD | `/telegram-groups` | admin |
-| GET | `/dashboard` | staff, admin — только v2 |
-| GET/PUT | `/settings/integrations` | admin |
+База: `https://notify-api.aps.by`. Документация: https://notify-api.aps.by/docs (`Notification_APS` 0.0.3). OpenAPI: `/openapi.json`.
 
-Вебхуки: `/webhooks/instagram`, `/webhooks/tiktok`. 403 для сотрудника на админских путях.
+Для всех методов, кроме `POST /users/login`, заголовок **`x-auth`**. Существующие методы не ломаем — расширяем в том же стиле (`/entity/add`, `PATCH /entity/update`, схемы `S*`, ответы `SSuccess` / `SError`, коды 403 / 409 / 422).
+
+### 13.1. Уже есть
+
+| Метод | Путь | Назначение |
+|---|---|---|
+| POST | `/records/all_info` | Список заявок, тело `SAllRecordsInfo` |
+| POST | `/records/file` | Выгрузка файла |
+| GET | `/records/one?id=` | Одна заявка |
+| POST | `/records/add` | Создать заявку, тело `SAddRecord` |
+| PATCH | `/records/status` | Сменить статус |
+| POST | `/callbacks/add` | Обратный звонок |
+| POST | `/history/add` | История |
+| GET / POST | `/brands`, `/brands/add` | Бренды |
+| GET / POST | `/requests`, `/requests/add` | Типы запросов |
+| GET / POST | `/sites`, `/sites/add` | Сайты |
+| GET / POST | `/statuses`, `/statuses/add` | Статусы |
+| GET | `/users`, `/users/short` | Пользователи |
+| POST | `/users/add` | Создать пользователя |
+| PATCH | `/users/update` | Обновить роль |
+| POST | `/users/login` | Вход `{name, token}`, без x-auth |
+
+### 13.2. Доработка `POST /records/add`
+
+В `SAddRecord` добавить поле:
+
+| Поле | Тип | Обязательно | Смысл |
+|---|---|---|---|
+| `campaign_name` | string или null | нет | Название рекламной кампании (Instagram `campaign_name` или TikTok `Group Ads`) |
+
+Остальные поля `SAddRecord` без изменений: обязательные `request_id`, `site_id`; опционально `name`, `phone`, `email`, `comment`, согласия, `utm`, `vin`, `url`, `need_to_call_back`, `brand_id`, `date_call`, `info`.
+
+После `add`: если `campaign_name` совпало с кампанией, у которой заданы бот и группа — заявка уходит в Telegram. Иначе статус «не распределён».
+
+То же поле — необязательный фильтр в `SAllRecordsInfo`. В `SRecordInfoOne` отдать кампанию и статус доставки в Telegram.
+
+### 13.3. Новые методы: боты
+
+| Метод | Путь | Тело | Ответ |
+|---|---|---|---|
+| GET | `/bots` | — | `SBot[]` без токена |
+| POST | `/bots/add` | `SAddBot {name, token}` | `SSuccess`, внутри `getMe` |
+| PATCH | `/bots/update` | `SUpdateBot {id, name?, token?, is_active?}` | `SSuccess` |
+| POST | `/bots/delete` | `{id}` | `SSuccess` или 409, если бот в кампании |
+| POST | `/bots/verify` | `{id}` или `{token}` | username, telegram_id |
+
+### 13.4. Новые методы: группы
+
+| Метод | Путь | Тело | Ответ |
+|---|---|---|---|
+| GET | `/groups` | — | `SGroup[]` |
+| POST | `/groups/add` | `SAddGroup {name, chat_id}` | `SSuccess` |
+| PATCH | `/groups/update` | `SUpdateGroup {id, name?, chat_id?}` | `SSuccess` |
+| POST | `/groups/delete` | `{id}` | `SSuccess` или 409 |
+| POST | `/groups/verify` | `{id, bot_id}` | проверка `getChat` и права писать |
+
+### 13.5. Новые методы: рекламные кампании
+
+| Метод | Путь | Тело | Ответ |
+|---|---|---|---|
+| GET | `/campaigns?platform=` | `instagram` или `tiktok` | `SCampaign[]` |
+| POST | `/campaigns/add` | `{name, platform, bot_id, group_id, message_title?}` | `SSuccess` |
+| PATCH | `/campaigns/update` | `{id, name?, bot_id?, group_id?, message_title?, is_active?}` | `SSuccess` |
+| POST | `/campaigns/delete` | `{id}` | `SSuccess` или архивация |
+| POST | `/campaigns/preview` | `{bot_id, group_id, message_title, name, phone, dealer, campaign_name}` | `{text}` — предпросмотр, в Telegram не шлёт |
+| POST | `/campaigns/test` | как preview | тестовая отправка в группу |
+| POST | `/records/route` | `{record_id, bot_id, group_id, message_title}` | кнопка «Настроить»: обновить РК и отправить заявку |
+
+`SCampaign`: `id`, `name`, `platform`, `bot` (`SRecordItem`), `group` (`SRecordItem`), `message_title`.
+
+Предпросмотр обязателен в форме кампании и в панели «Настроить». Данные — `POST /campaigns/preview`. «Отправить тест» — `POST /campaigns/test`.
+
+Новые методы требуют `x-auth`. Сотрудник на `/bots`, `/groups`, `/campaigns`, `/records/route` получает 403.
 
 ---
 
 ## 14. НФТ и безопасность
 
-Без изменений относительно v1.0: вебхук < 3 с, пик 50 лидов/мин, PII не в логах, токены encrypted, HTTPS, UI на русском, `Europe/Moscow`.
+Как в текущем API: `x-auth`, HTTPS. Вебхук < 3 с, пик 50 лидов/мин, PII не в логах, токены ботов encrypted, UI на русском, `Europe/Moscow`.
 
 ---
 
@@ -322,29 +391,25 @@ ID: {external_lead_id}
 | Этап | Состав |
 |---|---|
 | 1. Каркас | Роли, редизайн общего списка, вкладки админки |
-| 2. Telegram и РК | Таблицы ботов, групп, кампаний TikTok и Instagram |
-| 3. Приём и доставка | Вебхуки, «Настроить», очередь |
+| 2. API ботов / групп / РК | Методы в стиле Notification_APS, предпросмотр |
+| 3. records/add + доставка | `campaign_name`, очередь Telegram, «Настроить» |
 | v2 | Дашборд для обеих ролей |
 
 ---
 
 ## 16. Критерии приёмки v1
 
-1. Сотрудник видит общий список и не видит раздел админки Instagram/TikTok.
-2. Админ видит общий список и вкладки Запросы / Telegram / Рекламные кампании.
-3. Во вкладке «Запросы» только Instagram и TikTok; у «не распределён» и «ошибка Telegram» есть «Настроить».
-4. «Настроить» задаёт бота, группу и заголовок кампании и повторяет отправку.
-5. Telegram: таблица ботов и таблица групп, CRUD.
-6. Кампании: таблица TikTok и таблица Instagram, поля бот / группа / заголовок, CRUD.
-7. Тестовые лиды Instagram и TikTok приходят в выбранную группу с заданным заголовком.
-8. Дашборд в v1 отсутствует.
+1. Текущие методы `/records/*`, `/users/*`, справочники работают как в `/docs`.
+2. `POST /records/add` принимает `campaign_name` и маршрутизирует в Telegram.
+3. CRUD ботов, групп, кампаний через новые методы. 409 при удалении занятого бота/группы.
+4. `POST /campaigns/preview` возвращает текст и не пишет в Telegram. В UI есть пузырь предпросмотра.
+5. Сотрудник видит общий список и не видит раздел админки Instagram/TikTok.
+6. У «не распределён» / «ошибка Telegram» кнопка «Настроить» бьёт в `POST /records/route`.
+7. Дашборд в v1 отсутствует.
 
 ---
 
-## 17. Зафиксировано в v1.1
+## 17. Зафиксировано
 
-- Роли: админ и сотрудник.
-- Канал → группа.
-- Шаблон → заголовок.
-- Дашборд отложен на v2.
-- Общий список заявок перерисовывается с текущего экрана Dongfeng.
+- v1.2: существующий API notify-api.aps.by, новые методы ботов/групп/РК, `campaign_name`, предпросмотр.
+- v1.1: роли админ/сотрудник, группа вместо канала, заголовок, дашборд в v2, редизайн списка заявок.

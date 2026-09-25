@@ -1,6 +1,8 @@
 # LeadRelay — ТЗ на маршрутизацию лидов
 
-Техническое задание на сервис (фронт + бэк), который принимает заявки из Instagram Lead Ads и TikTok Lead Generation, показывает их в таблицах и пересылает в Telegram-бот и Telegram-группу, выбранные для рекламной кампании. Версия документа 1.1.
+Техническое задание на сервис (фронт + бэк), который принимает заявки из Instagram Lead Ads и TikTok Lead Generation, показывает их в таблицах и пересылает в Telegram-бот и Telegram-группу. Версия документа 1.2.
+
+Базовый API: [notify-api.aps.by/docs](https://notify-api.aps.by/docs) (`x-auth`). Новые методы — боты, группы, кампании; в `/records/add` поле `campaign_name`.
 
 - Репозиторий: https://github.com/MagnoliasFlwrs/leadrelay
 - Живая версия ТЗ: https://magnoliasflwrs.github.io/leadrelay/
@@ -34,6 +36,7 @@ npm run preview
 2. Редизайн общего списка заявок.
 3. Вкладки админки: Запросы (Instagram и TikTok), Telegram (боты и группы), Рекламные кампании (две таблицы).
 4. У «не распределён» / «ошибка Telegram» — кнопка «Настроить»: бот, группа, заголовок.
-5. Дашборд — версия 2.
+5. Доработка API: `/bots`, `/groups`, `/campaigns` (+ предпросмотр), поле `campaign_name` в `/records/add`.
+6. Дашборд — версия 2.
 
 Реализация самого сервиса в этот репозиторий не входит — здесь постановка для команды разработки.

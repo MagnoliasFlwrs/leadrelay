@@ -35,7 +35,7 @@ function Passport() {
   return (
     <section id="passport" className="scroll-mt-24">
       <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-accent">
-        ТЗ-LR-001 · версия 1.1
+        ТЗ-LR-001 · версия 1.2
       </p>
       <h1 className="font-serif text-4xl font-semibold tracking-tight text-ink md:text-[3.25rem] md:leading-[1.12]">
         Сервис маршрутизации лидов Instagram и TikTok в Telegram
@@ -50,11 +50,11 @@ function Passport() {
         {[
           ['Заказчик / контекст', 'Автоцентры Dongfeng: лиды с форм записи и подбора дилера'],
           ['Код документа', 'ТЗ-LR-001'],
-          ['Версия', '1.1 от 25 сентября 2026'],
+          ['Версия', '1.2 от 25 сентября 2026'],
           ['Статус', 'Черновик к согласованию'],
           ['Платформы-источники', 'Instagram (Meta Lead Ads), TikTok Lead Generation'],
           ['Канал доставки', 'Telegram Bot API → группа'],
-          ['Роли', 'Админ и сотрудник'],
+          ['Базовый API', 'https://notify-api.aps.by/docs · x-auth'],
         ].map(([k, v]) => (
           <div key={k} className="rounded-xl border border-rule bg-white/60 px-4 py-3">
             <dt className="text-[11px] font-semibold uppercase tracking-wider text-ink-soft">{k}</dt>
@@ -371,10 +371,11 @@ function Telegram() {
         выбранного бота в chat_id группы. Бот должен быть администратором группы
         с правом публикации.
       </P>
-      <Req id="FR-40" title="Заголовок сообщения">
+      <Req id="FR-40" title="Заголовок и предпросмотр">
         У кампании поле «заголовок» — первая строка сообщения в Telegram. Тело
-        ниже стандартное: имя, телефон, автоцентр, площадка, id. Пустой заголовок
-        допускается; тогда сообщение начинается сразу с полей.
+        ниже стандартное. В форме кампании и в «Настроить» — живой предпросмотр
+        пузырём Telegram (POST /campaigns/preview, в чат не уходит) и кнопка
+        «Отправить тест» (POST /campaigns/test).
       </Req>
       <pre className="overflow-x-auto rounded-xl border border-rule bg-ink p-4 text-[12px] leading-5 text-paper">
 {`{заголовок}
@@ -551,40 +552,96 @@ function Model() {
 
 function Api() {
   return (
-    <Section id="api" kicker="14" title="API">
+    <Section id="api" kicker="14" title="API Notification_APS">
+      <P>
+        База: <code className="text-ink">https://notify-api.aps.by</code>, Swagger:{' '}
+        <a className="text-accent-2 underline" href="https://notify-api.aps.by/docs">
+          /docs
+        </a>
+        , OpenAPI: <code className="text-ink">/openapi.json</code>, версия сейчас 0.0.3.
+        Заголовок <code className="text-ink">x-auth</code> обязателен для всех методов,
+        кроме <code className="text-ink">POST /users/login</code>. Существующие методы
+        не ломаем — только расширяем.
+      </P>
+      <h3 className="font-serif text-xl font-semibold text-ink">Уже есть (не менять контракт)</h3>
       <DataTable
-        caption="REST, префикс /api, JWT"
-        columns={['Метод', 'Путь', 'Роль', 'Назначение']}
+        caption="Текущие методы"
+        columns={['Метод', 'Путь', 'Тело / query', 'Назначение']}
         rows={[
-          ['POST', '/auth/login', 'все', 'Вход'],
-          ['GET', '/leads', 'staff, admin', 'Общий список заявок'],
-          ['GET', '/leads/export', 'staff, admin', 'Отчёт'],
-          ['GET', '/ads/leads', 'admin', 'Заявки Instagram и TikTok'],
-          ['POST', '/ads/leads/:id/route', 'admin', 'Настроить кампанию лида и отправить'],
-          ['GET/POST', '/campaigns', 'admin', 'Список и создание, фильтр platform'],
-          ['PATCH/DELETE', '/campaigns/:id', 'admin', 'Правка, удаление'],
-          ['GET/POST', '/telegram-bots', 'admin', 'Боты'],
-          ['PATCH/DELETE', '/telegram-bots/:id', 'admin', 'Правка, удаление'],
-          ['POST', '/telegram-bots/:id/verify', 'admin', 'getMe'],
-          ['GET/POST', '/telegram-groups', 'admin', 'Группы'],
-          ['PATCH/DELETE', '/telegram-groups/:id', 'admin', 'Правка, удаление'],
-          ['POST', '/telegram-groups/:id/verify', 'admin', 'Проверка прав бота'],
-          ['GET', '/dashboard', 'staff, admin', 'Только версия 2'],
-          ['GET/PUT', '/settings/integrations', 'admin', 'Токены Meta/TikTok'],
+          ['POST', '/records/all_info', 'SAllRecordsInfo', 'Список заявок с фильтрами'],
+          ['POST', '/records/file', 'SAllRecordsInfo', 'Выгрузка файла'],
+          ['GET', '/records/one', 'id', 'Одна заявка'],
+          ['POST', '/records/add', 'SAddRecord', 'Создать заявку'],
+          ['PATCH', '/records/status', 'SChangeStatus', 'Сменить статус'],
+          ['POST', '/callbacks/add', 'SAddCallback', 'Обратный звонок'],
+          ['POST', '/history/add', 'SAddHistory', 'История'],
+          ['GET / POST', '/brands, /brands/add', 'SAddBrand', 'Бренды'],
+          ['GET / POST', '/requests, /requests/add', 'SAddRequest', 'Типы запросов'],
+          ['GET / POST', '/sites, /sites/add', 'SAddSite', 'Сайты'],
+          ['GET / POST', '/statuses, /statuses/add', '—', 'Статусы записей'],
+          ['GET', '/users, /users/short', '—', 'Пользователи'],
+          ['POST', '/users/add', 'SAddUser', 'Создать пользователя'],
+          ['PATCH', '/users/update', 'SUpdateUser', 'Роль пользователя'],
+          ['POST', '/users/login', 'SLogin {name, token}', 'Вход, без x-auth'],
         ]}
       />
+      <Req id="FR-71" title="Доработка POST /records/add — название РК">
+        В <code className="text-ink">SAddRecord</code> добавить необязательное поле{' '}
+        <code className="text-ink">campaign_name: string | null</code> — название
+        рекламной кампании (Instagram campaign_name или TikTok Group Ads). После
+        сохранения заявки сервис ищет кампанию по имени: нашёл бота и группу —
+        ставит сообщение в очередь Telegram; не нашёл — статус «не распределён».
+        В <code className="text-ink">SAllRecordsInfo</code> тот же фильтр{' '}
+        <code className="text-ink">campaign_name</code>. В{' '}
+        <code className="text-ink">SRecordInfoOne</code> отдать кампанию и статус доставки.
+      </Req>
+      <h3 className="font-serif text-xl font-semibold text-ink">Новые методы — боты</h3>
       <DataTable
-        caption="Публичные вебхуки без JWT"
-        columns={['Метод', 'Путь', 'Назначение']}
+        columns={['Метод', 'Путь', 'Тело', 'Ответ']}
         rows={[
-          ['GET', '/webhooks/instagram', 'Verify hub.challenge'],
-          ['POST', '/webhooks/instagram', 'leadgen'],
-          ['POST', '/webhooks/tiktok', 'Lead webhook'],
+          ['GET', '/bots', '—', 'SBot[] без токена'],
+          ['POST', '/bots/add', 'SAddBot {name, token}', 'SSuccess; внутри getMe'],
+          ['PATCH', '/bots/update', 'SUpdateBot {id, name?, token?, is_active?}', 'SSuccess'],
+          ['POST', '/bots/delete', '{id}', 'SSuccess или 409, если бот в кампании'],
+          ['POST', '/bots/verify', '{id} или {token}', 'username, telegram_id'],
         ]}
       />
-      <Req id="FR-70" title="Контракт ошибок">
-        JSON {'{ error: { code, message } }'}. 403 — сотрудник на админских
-        эндпоинтах. 409 — удаление бота, занятого кампанией.
+      <h3 className="font-serif text-xl font-semibold text-ink">Новые методы — группы</h3>
+      <DataTable
+        columns={['Метод', 'Путь', 'Тело', 'Ответ']}
+        rows={[
+          ['GET', '/groups', '—', 'SGroup[]'],
+          ['POST', '/groups/add', 'SAddGroup {name, chat_id}', 'SSuccess'],
+          ['PATCH', '/groups/update', 'SUpdateGroup {id, name?, chat_id?}', 'SSuccess'],
+          ['POST', '/groups/delete', '{id}', 'SSuccess или 409, если группа в кампании'],
+          ['POST', '/groups/verify', '{id, bot_id}', 'проверка getChat и права писать'],
+        ]}
+      />
+      <h3 className="font-serif text-xl font-semibold text-ink">Новые методы — рекламные кампании</h3>
+      <DataTable
+        columns={['Метод', 'Путь', 'Тело / query', 'Ответ']}
+        rows={[
+          ['GET', '/campaigns', 'platform=instagram|tiktok', 'SCampaign[]'],
+          ['POST', '/campaigns/add', 'SAddCampaign {name, platform, bot_id, group_id, message_title?}', 'SSuccess'],
+          ['PATCH', '/campaigns/update', 'SUpdateCampaign {id, name?, bot_id?, group_id?, message_title?, is_active?}', 'SSuccess'],
+          ['POST', '/campaigns/delete', '{id}', 'SSuccess или архивация, если есть заявки'],
+          ['POST', '/campaigns/preview', 'SPreview {bot_id, group_id, message_title, name, phone, dealer, campaign_name}', '{text} — предпросмотр, в Telegram не шлёт'],
+          ['POST', '/campaigns/test', 'как preview + send: true', 'тестовое сообщение в группу'],
+          ['POST', '/records/route', '{record_id, bot_id, group_id, message_title}', 'кнопка «Настроить»: обновить РК заявки и отправить'],
+        ]}
+      />
+      <Req id="FR-72" title="Предпросмотр сообщения в Telegram">
+        В форме кампании и в панели «Настроить» обязателен живой предпросмотр:
+        заголовок + стандартные поля заявки в виде пузыря Telegram. Данные
+        предпросмотра берутся из <code className="text-ink">POST /campaigns/preview</code>.
+        Кнопка «Отправить тест» вызывает <code className="text-ink">POST /campaigns/test</code>.
+      </Req>
+      <Req id="FR-70" title="Контракт как у текущего API">
+        Успех — <code className="text-ink">SSuccess {'{ status, detail }'}</code>.
+        Ошибка — <code className="text-ink">SError {'{ detail }'}</code>. Коды 403 / 409 /
+        422 как в существующих методах. Схемы с префиксом S. Новые методы требуют{' '}
+        <code className="text-ink">x-auth</code>. Сотрудник на /bots, /groups, /campaigns,
+        /records/route — 403.
       </Req>
     </Section>
   )

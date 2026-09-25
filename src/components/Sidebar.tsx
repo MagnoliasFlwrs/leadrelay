@@ -65,7 +65,7 @@ export function Sidebar({
           ))}
         </nav>
         <div className="border-t border-white/10 px-5 py-4 text-[11px] text-paper/45">
-          Версия 1.1 · 25 сентября 2026
+          Версия 1.2 · 25 сентября 2026
         </div>
       </aside>
     </>

@@ -326,6 +326,33 @@ function AdsLeadsTab({
             <Field label="Бот" value="@dongfeng_leads_bot" />
             <Field label="Группа" value="Юг · заявки" />
             <Field label="Заголовок сообщения в Telegram" value="Новый лид · тест-драйв Юг" />
+            <div>
+              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                Предпросмотр сообщения
+              </p>
+              <div className="rounded-2xl rounded-tl-sm bg-[#e8def6] px-3 py-2 text-[12px] leading-5 text-slate-900">
+                Новый лид · тест-драйв Юг
+                <br />
+                <br />
+                Имя: Анна К.
+                <br />
+                Телефон: +375 29 204-11-90
+                <br />
+                Автоцентр: Dongfeng Юг
+                <br />
+                Площадка: Instagram
+                <br />
+                Кампания: Весна — тест-драйв
+                <br />
+                ID: 2384870
+              </div>
+            </div>
+            <button
+              type="button"
+              className="w-full rounded-md border border-slate-300 py-2 text-sm font-semibold text-slate-800"
+            >
+              Отправить тест
+            </button>
             <button
               type="button"
               className="w-full rounded-md bg-[#1d6fe8] py-2 text-sm font-semibold text-white"
@@ -440,6 +467,43 @@ function CampaignsTab() {
           ['Кредит 0.01%', '@dongfeng_north_bot', 'Север · заявки', 'Лид Instagram · кредит'],
         ]}
       />
+      <Card>
+        <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+          Форма кампании · предпросмотр Telegram
+        </p>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-3">
+            <Field label="Название РК" value="Group A · Кроссовер" />
+            <Field label="Бот" value="@dongfeng_leads_bot" />
+            <Field label="Группа" value="Юг · заявки" />
+            <Field label="Заголовок" value="Лид TikTok · кроссовер" />
+          </div>
+          <div>
+            <p className="mb-1 text-[11px] font-medium text-slate-500">
+              POST /campaigns/preview → пузырь, в Telegram не уходит
+            </p>
+            <div className="rounded-2xl rounded-tl-sm bg-[#e8def6] px-3 py-2 text-[12px] leading-5 text-slate-900">
+              Лид TikTok · кроссовер
+              <br />
+              <br />
+              Имя: Мария Смирнова
+              <br />
+              Телефон: +375 29 330-00-14
+              <br />
+              Автоцентр: Dongfeng Центр
+              <br />
+              Площадка: TikTok
+              <br />
+              Кампания: Group A · Кроссовер
+              <br />
+              ID: TT-9182
+            </div>
+            <p className="mt-2 text-[11px] text-slate-500">
+              «Отправить тест» → POST /campaigns/test. Сохранить → POST /campaigns/add или PATCH /campaigns/update.
+            </p>
+          </div>
+        </div>
+      </Card>
     </div>
   )
 }

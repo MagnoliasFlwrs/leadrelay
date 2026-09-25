@@ -2,10 +2,13 @@
 
 Техническое задание на сервис (фронт + бэк), который принимает заявки из Instagram Lead Ads и TikTok Lead Generation, показывает их в таблице и пересылает в Telegram-бот и Telegram-канал, выбранные для рекламной кампании.
 
+- Репозиторий: https://github.com/MagnoliasFlwrs/leadrelay
+- Живая версия ТЗ: https://magnoliasflwrs.github.io/leadrelay/
+
 ## Документы
 
 - Канонический текст: [docs/TZ.md](docs/TZ.md)
-- Читаемая версия с макетами экранов: этот сайт (`npm run dev`)
+- Читаемая версия с макетами: сайт выше или `npm run dev`
 
 ## Как открыть ТЗ локально
 
@@ -22,6 +25,8 @@ npm run dev
 npm run build
 npm run preview
 ```
+
+Публикация идёт через GitHub Actions на GitHub Pages при каждом пуше в `main`.
 
 ## Что должно быть реализовано по ТЗ
 

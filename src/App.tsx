@@ -47,7 +47,7 @@ export default function App() {
           <SpecSections />
           <footer className="mt-20 border-t border-rule pt-6 text-sm text-ink-soft">
             Каноническая копия:{' '}
-            <a className="font-medium text-accent-2 underline decoration-rule underline-offset-4" href="/TZ.md">
+            <a className="font-medium text-accent-2 underline decoration-rule underline-offset-4" href={`${import.meta.env.BASE_URL}TZ.md`}>
               скачать TZ.md
             </a>
             . Документ можно отдать команде как постановку на фронт и бэк.
